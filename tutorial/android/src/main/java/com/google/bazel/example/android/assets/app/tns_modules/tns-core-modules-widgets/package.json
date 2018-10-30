@@ -21,7 +21,7 @@
   "_resolved": "https://registry.npmjs.org/tns-core-modules-widgets/-/tns-core-modules-widgets-4.2.1.tgz",
   "_shasum": "bb57bf7342d1a0a01b6ccef47980ded19efc932e",
   "_spec": "tns-core-modules-widgets@4.2.1",
-  "_where": "/usr/local/google/home/alexeagle/Projects/try_nativescript/node_modules/tns-core-modules",
+  "_where": "/usr/local/google/home/alexeagle/Projects/try_nativescript_angular/node_modules/tns-core-modules",
   "author": {
     "name": "NativeScript team"
   },
