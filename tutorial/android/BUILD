@@ -1,3 +1,5 @@
+load("@gmaven_rules//:defs.bzl", "gmaven_artifact")
+
 # The final binary rule, which builds the APK and sets the application manifest,
 # as well as any other resources needed by the application.
 # The package for the R class for resources is normally inferred from the
@@ -6,10 +8,22 @@
 android_binary(
     name = "android",
     custom_package = "com.google.bazel.example.android",
+    srcs = glob(["src/main/java/com/tns/**/*.java"]),
     manifest = "src/main/java/com/google/bazel/example/android/AndroidManifest.xml",
     resource_files = glob(["src/main/java/com/google/bazel/example/android/res/**"]),
     visibility = ["//visibility:public"],
-    deps = [":activities"],
+    assets = glob(["src/main/java/com/google/bazel/example/android/assets/**"]),
+    assets_dir = "src/main/java/com/google/bazel/example/android/assets",
+    deps = [
+        ":activities",
+        ":nativescript_lib",
+        ":nativescript_widgets",
+        gmaven_artifact("com.android.support:multidex:aar:1.0.2"),
+        gmaven_artifact("com.android.support:support-v4:aar:26.0.0-alpha1"),
+        gmaven_artifact("com.android.support:support-core-ui:aar:26.0.0-alpha1"),
+        gmaven_artifact("com.android.support:appcompat-v7:aar:26.0.0-alpha1"),
+        gmaven_artifact("com.android.support:design:aar:26.0.0-alpha1"),
+        ],
 )
 
 # A library which compiles some Java sources and associated resources.
@@ -20,4 +34,13 @@ android_library(
     custom_package = "com.google.bazel.example.android.activities",
     manifest = "src/main/java/com/google/bazel/example/android/activities/AndroidManifest.xml",
     resource_files = glob(["src/main/java/com/google/bazel/example/android/activities/res/**"]),
+)
+
+aar_import(
+    name = "nativescript_lib",
+    aar = "src/main/java/com/google/bazel/example/android/libs/runtime-libs/nativescript-optimized.aar",
+)
+aar_import(
+    name = "nativescript_widgets",
+    aar = "src/main/java/com/google/bazel/example/android/libs/runtime-libs/widgets-release.aar"
 )

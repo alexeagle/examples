@@ -18,3 +18,29 @@ http_archive(
 load("@io_bazel_rules_appengine//appengine:appengine.bzl", "appengine_repositories")
 
 appengine_repositories()
+
+android_sdk_repository(
+    name = "androidsdk",
+    path = "/usr/local/google/home/alexeagle/Android/Sdk",
+)
+android_ndk_repository(
+    name = "androidndk", # Required. Name *must* be "androidndk".
+    path = "/usr/local/google/home/alexeagle/Android/Sdk/ndk-bundle", # Optional. Can be omitted if `ANDROID_NDK_HOME` environment variable is set.
+)
+
+bind(
+    name = "android_sdk_for_testing",
+    actual = "@androidsdk//:files",
+)
+
+GMAVEN_TAG = "20181010-1" # or the tag from the latest release
+
+http_archive(
+    name = "gmaven_rules",
+    strip_prefix = "gmaven_rules-%s" % GMAVEN_TAG,
+    url = "https://github.com/bazelbuild/gmaven_rules/archive/%s.tar.gz" % GMAVEN_TAG,
+)
+
+load("@gmaven_rules//:gmaven.bzl", "gmaven_rules")
+
+gmaven_rules()
