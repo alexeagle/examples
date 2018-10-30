@@ -23,7 +23,7 @@ android_binary(
         gmaven_artifact("com.android.support:support-core-ui:aar:26.0.0-alpha1"),
         gmaven_artifact("com.android.support:appcompat-v7:aar:26.0.0-alpha1"),
         gmaven_artifact("com.android.support:design:aar:26.0.0-alpha1"),
-        ],
+    ],
 )
 
 # A library which compiles some Java sources and associated resources.
@@ -38,7 +38,7 @@ android_library(
 
 aar_import(
     name = "nativescript_lib",
-    aar = "src/main/java/com/google/bazel/example/android/libs/runtime-libs/nativescript-optimized.aar",
+    aar = "src/main/java/com/google/bazel/example/android/libs/runtime-libs/nativescript-optimized-with-inspector.aar",
 )
 aar_import(
     name = "nativescript_widgets",
