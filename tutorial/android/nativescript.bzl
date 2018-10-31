@@ -41,14 +41,7 @@ def _static_binding_generator(ctx):
 
   return [DefaultInfo(files = depset([ctx.outputs.srcjar]))]
 
-static_binding_generator = rule(
-    implementation = _static_binding_generator,
-    attrs = {
-      "_sbg": attr.label(
-          cfg = "host",
-          default = Label("//android:sbg_sh"),
-          executable = True,
-      ),
+COMMON_ATTRS = {
       "_java": attr.label(
           cfg = "host",
           default = Label("@bazel_tools//tools/jdk:java"),
@@ -57,6 +50,17 @@ static_binding_generator = rule(
       "_jar": attr.label(
           cfg = "host",
           default = Label("@bazel_tools//tools/jdk:jar"),
+          executable = True,
+      ),
+      "deps": attr.label_list(allow_files = True),
+}
+
+static_binding_generator = rule(
+    implementation = _static_binding_generator,
+    attrs = dict(COMMON_ATTRS, **{
+      "_sbg": attr.label(
+          cfg = "host",
+          default = Label("//android:sbg_sh"),
           executable = True,
       ),
       "_node": attr.label(
@@ -73,12 +77,58 @@ static_binding_generator = rule(
       "jsparser": attr.label(
           allow_single_file = True,
           default = Label("//android:modified_jsparser.js")),
-      "deps": attr.label_list(allow_files = True),
+
       "assets": attr.label_list(allow_files = True),
       "assets_dir": attr.string(mandatory = True),
       "static_java": attr.label(default = Label("@tns_android//:static_binding_java")),
-    },
+    }),
     outputs = {
       "srcjar": "%{name}.srcjar"
     }
+)
+
+def _android_metadata_generator(ctx):
+
+    classes_dir = ctx.actions.declare_directory("classes-tmp")
+    outdir = ctx.actions.declare_directory("src/main/java/com/google/bazel/example/android/assets/metadata")
+    mdg_deps_file = ctx.actions.declare_file("mdg-java-dependencies.txt")
+    ctx.actions.write(output=mdg_deps_file, content="\n".join([
+        f.path for f in ctx.files.deps if f.path.endswith(".jar")
+    ]))
+    mdg_output_file = ctx.actions.declare_file("mdg-output-dir.txt")
+    ctx.actions.write(output=mdg_output_file, content=outdir.path)
+
+    ctx.actions.run(
+        inputs = ctx.files._java + ctx.files._mdg + ctx.files.deps + ctx.files._android_metadata_generator + ctx.files._jar + [mdg_deps_file, mdg_output_file, ctx.file.resource_jar],
+        outputs = [outdir, classes_dir],
+        executable = ctx.executable._mdg,
+        arguments = [
+          ctx.executable._jar.path,
+          ctx.file.resource_jar.path,
+          classes_dir.path,
+          mdg_deps_file.path,
+          mdg_output_file.path,
+          ctx.executable._java.path,
+          "-jar",
+          ctx.executable._android_metadata_generator.path,
+        ],
+    )
+    return [DefaultInfo(files = depset([outdir]))]
+
+android_metadata_generator = rule(
+    implementation = _android_metadata_generator,
+    attrs = dict(COMMON_ATTRS, **{
+      # Should allow multiple resource jars
+      "resource_jar": attr.label(allow_single_file = True),
+      "_android_metadata_generator": attr.label(
+          allow_single_file = True,
+          cfg = "host",
+          executable = True,
+          default = Label("@tns_android//:build-tools/android-metadata-generator.jar")),
+      "_mdg": attr.label(
+          cfg = "host",
+          default = Label("//android:mdg_sh"),
+          executable = True,
+      ),
+    }),
 )

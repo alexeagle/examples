@@ -46,6 +46,7 @@ new_http_archive(
     build_file_content = """package(default_visibility=["//visibility:public"])
 
 exports_files([
+    "build-tools/android-metadata-generator.jar",
     "build-tools/static-binding-generator.jar",
     "build-tools/jsparser/js_parser.js",
 ])

@@ -1,5 +1,5 @@
 load("@gmaven_rules//:defs.bzl", "gmaven_artifact")
-load(":nativescript.bzl", "static_binding_generator")
+load(":nativescript.bzl", "static_binding_generator", "android_metadata_generator")
 
 genrule(
     name = "modified_jsparser.js",
@@ -11,6 +11,11 @@ genrule(
 sh_binary(
     name = "sbg_sh",
     srcs = ["sbg.sh"],
+)
+
+sh_binary(
+    name = "mdg_sh",
+    srcs = ["mdg.sh"],
 )
 
 ASSETS = glob([
@@ -32,10 +37,23 @@ DEPS = [
     "@tns_android//:nativescript-optimized-with-inspector",
     "@tns_widgets//:nativescript-widgets",
     gmaven_artifact("com.android.support:multidex:aar:1.0.2"),
-    gmaven_artifact("com.android.support:support-v4:aar:26.0.0-alpha1"),
-    gmaven_artifact("com.android.support:support-core-ui:aar:26.0.0-alpha1"),
-    gmaven_artifact("com.android.support:appcompat-v7:aar:26.0.0-alpha1"),
-    gmaven_artifact("com.android.support:design:aar:26.0.0-alpha1"),
+    gmaven_artifact("com.android.support:support-annotations:jar:26.0.0-alpha1"),
+] + [
+    gmaven_artifact("com.android.support:%s:aar:26.0.0" % support_lib)
+    for support_lib in [
+        "design",
+        "appcompat-v7",
+        "transition",
+        "support-v4",
+        "support-media-compat",
+        "support-fragment",
+        "support-core-utils",
+        "recyclerview-v7",
+        "support-core-ui",
+        "animated-vector-drawable",
+        "support-vector-drawable",
+        "support-compat",
+    ]
 ]
 
 static_binding_generator(
@@ -61,8 +79,8 @@ android_library(
 # The package for the R class for resources is normally inferred from the
 # directory containing the BUILD file, but this BUILD file is not under a java
 # directory, so we specify it manually.
-android_binary(
-    name = "android",
+android_library(
+    name = "android_lib",
     custom_package = "com.google.bazel.example.android",
     srcs = [],
     manifest = "src/main/java/com/google/bazel/example/android/AndroidManifest.xml",
@@ -71,4 +89,27 @@ android_binary(
     assets = ASSETS,
     assets_dir = "src/main/java/com/google/bazel/example/android/assets",
     deps = DEPS + [":compiled_static_bindings"],
+)
+
+android_metadata_generator(
+    name = "generated_metadata",
+    resource_jar = ":android_lib_resources.jar",
+    deps = DEPS + ["@androidsdk//:platforms/android-28/android.jar"],
+)
+
+android_binary(
+    name = "android",
+    manifest = "src/main/java/com/google/bazel/example/android/AndroidManifest.xml",
+    custom_package = "com.google.bazel.example.android",
+    assets = ASSETS + [
+        ":generated_metadata",
+    ],
+    assets_dir = "src/main/java/com/google/bazel/example/android/assets",
+    srcs = [],
+    resource_files = glob(["src/main/java/com/google/bazel/example/android/res/**"]),
+    visibility = ["//visibility:public"],
+    deps = DEPS + [
+        ":compiled_static_bindings",
+        ":android_lib",
+    ],
 )
