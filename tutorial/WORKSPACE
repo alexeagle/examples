@@ -29,6 +29,17 @@ android_ndk_repository(
 )
 
 new_http_archive(
+    name = "tns_widgets",
+    url = "https://registry.yarnpkg.com/tns-core-modules-widgets/-/tns-core-modules-widgets-4.2.0.tgz",
+    strip_prefix = "package/platforms",
+    build_file_content = """package(default_visibility=["//visibility:public"])
+aar_import(
+    name = "nativescript-widgets",
+    aar = "android/widgets-release.aar",
+)
+    """,
+)
+new_http_archive(
     name = "tns_android",
     url = "https://registry.yarnpkg.com/tns-android/-/tns-android-4.2.0.tgz",
     strip_prefix = "package/framework",
@@ -45,6 +56,11 @@ filegroup(
        "app/src/main/java/com/tns/*.java",
        "app/src/main/java/com/tns/internal/*.java",
     ]),
+)
+
+aar_import(
+    name = "nativescript-optimized-with-inspector",
+    aar = "app/libs/runtime-libs/nativescript-optimized-with-inspector.aar",
 )
 """,
 )
